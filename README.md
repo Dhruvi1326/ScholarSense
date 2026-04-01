@@ -6,6 +6,7 @@ ScholarSense is a high-performance platform designed to solve the "Trust Gap" in
 ## 🚀 The Foundations (Complete)
 - **Backend:** FastAPI (Python) with Async I/O for high-concurrency research queries.
 - **Database:** Relational SQLite with SQLAlchemy ORM (Cloud-ready for GCP).
+- **FinOps:** Local-first architecture to maximize the $300 GCP credit lifecycle.
 
 ## 🎓 Academic Alignment
 - **Harvard CS50:** Implementing Data Abstraction and RESTful design patterns.
