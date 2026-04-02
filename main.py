@@ -1,12 +1,18 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-import models, database, ai_engine, verifier  
+import models, database, ai_engine, verifier
+from vector_service import initialize_vector_db, add_to_vector_store
 from pydantic import BaseModel
 
-# Initialize database tables
+# Initialize SQL Tables
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="ScholarSense API")
+
+# Initialize Vector Memory on Startup
+@app.on_event("startup")
+async def startup_event():
+    initialize_vector_db()
 
 class PaperCreate(BaseModel):
     title: str
@@ -15,55 +21,109 @@ class PaperCreate(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {
-        "message": "ScholarSense Backend is Live!", 
-        "status": "AI Engine & Truth Layer Connected"
-    }
+    return {"message": "ScholarSense Backend Live", "status": "Robust Logic Active"}
 
 @app.post("/papers/")
 async def create_paper(paper: PaperCreate, db: Session = Depends(database.get_db)):
-    """
-    Day 3 Workflow: 
-    1. Check Local DB -> 2. Verify External DOI -> 3. AI Audit -> 4. Weighted Save
-    """
-    
-    # 1. Local Data Integrity Check
+    # 1. Local Duplicate Check
     existing_paper = db.query(models.Paper).filter(models.Paper.doi == paper.doi).first()
     if existing_paper:
-        raise HTTPException(status_code=400, detail="Paper with this DOI already exists in our database.")
+        raise HTTPException(status_code=400, detail="Paper already exists in ScholarSense.")
 
-    # 2. External Truth Layer (Crossref Verification)
-    print(f"Verifying DOI: {paper.doi} via Crossref...")
+    # 2. External Registry Verification (Crossref)
     verification = await verifier.verify_doi_with_crossref(paper.doi)
     
-    # 3. AI Brain Audit (Nature Auditor Protocol)
-    print(f"Auditing Content: {paper.title}...")
+    # 3. AI Scientific Audit
     ai_audit = ai_engine.evaluate_paper_integrity(paper.title, paper.abstract)
-    
-    # 4. Hybrid Scoring Logic (The Research Guardrail)
-    # If the DOI is invalid, penalize the AI score significantly (multiplied by 0.2)
     base_ai_score = ai_audit.get("score", 0)
-    final_integrity_score = base_ai_score if verification["is_valid"] else (base_ai_score * 0.2)
 
-    # 5. Create the Record
+    # 4. ROBUST SCORING (Fairness Logic)
+    if not verification["is_valid"] and base_ai_score > 80:
+        final_integrity_score = base_ai_score - 5 
+        registry_note = "Registry Pending / Content High"
+    elif not verification["is_valid"]:
+        final_integrity_score = base_ai_score * 0.8 
+        registry_note = "Unverified Source"
+    else:
+        final_integrity_score = base_ai_score
+        registry_note = "Registry Confirmed"
+
+    # 5. Trust Labeling
+    if final_integrity_score > 85:
+        trust_label = "Gold Standard / Peer-Verified"
+    elif final_integrity_score > 65:
+        trust_label = "Credible / Methodological Review Suggested"
+    else:
+        trust_label = "High Risk / Poor Documentation"
+
+    # 6. Save to SQL Database
     db_paper = models.Paper(
-        # prefer the official registry title if the DOI is valid
         title=verification.get("official_title", paper.title),
         abstract=paper.abstract,
         doi=paper.doi,
         integrity_score=final_integrity_score,
-        # Store the verification status in the citation field for now
-        citation_apa=f"Verified: {verification['is_valid']}. Summary: {ai_audit.get('summary')}"
+        citation_apa=f"[{trust_label}] {ai_audit.get('summary')}"
     )
     
     db.add(db_paper)
     db.commit()
     db.refresh(db_paper)
-    
+
+    # 7. Index in Semantic Memory (Qdrant)
+    add_to_vector_store(
+        paper_id=db_paper.id,
+        title=db_paper.title,
+        abstract=db_paper.abstract,
+        integrity_score=final_integrity_score
+    )
+
     return {
-        "message": "Audit Complete",
-        "verification_status": "Registry Confirmed" if verification["is_valid"] else "Registry Failure",
-        "ai_verdict": ai_audit.get("verdict"),
-        "final_score": final_integrity_score,
+        "audit_report": {
+            "verdict": ai_audit.get("verdict"),
+            "trust_level": trust_label,
+            "final_score": final_integrity_score,
+            "registry": registry_note,
+            "red_flags": ai_audit.get("red_flags", [])
+        },
         "data": db_paper
     }
+
+@app.get("/search/")
+async def semantic_search(query: str, limit: int = 3):
+    """
+    Searches by MEANING using Vector Math.
+    """
+    from vector_service import client, COLLECTION_NAME, model
+    
+    try:
+        # 1. Convert question to vector
+        query_vector = model.encode(query).tolist()
+        
+        # 2. Search Qdrant using the 'search' method
+        # Note: If your version is very new, we use query_points
+        try:
+            results = client.search(
+                collection_name=COLLECTION_NAME,
+                query_vector=query_vector,
+                limit=limit
+            )
+        except AttributeError:
+            # Fallback for different library versions
+            from qdrant_client.models import SearchRequest
+            results = client.query_points(
+                collection_name=COLLECTION_NAME,
+                query=query_vector,
+                limit=limit
+            ).points
+        
+        # 3. Format output
+        return [
+            {
+                "title": res.payload.get("title", "Unknown Title"),
+                "score": res.payload.get("integrity_score", 0),
+                "relevance": f"{round(res.score * 100, 2)}%" if hasattr(res, 'score') else "N/A"
+            } for res in results
+        ]
+    except Exception as e:
+        print(f"❌ Search Error Detail: {e}")
+        return {"error": f"Search failed: {str(e)}"}

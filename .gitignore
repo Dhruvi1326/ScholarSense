@@ -1,6 +1,13 @@
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
+# Secrets
 .env
-*.db
+
+# Database
+scholarsense.db
+
+# Python
+__pycache__/
+venv/
+.pytest_cache/
+
+# Docker
+*.tar
