@@ -14,14 +14,15 @@ ScholarSense is a high-performance platform designed to solve the "Trust Gap" in
 - **Tooling:** Development via Cursor AI and API testing via Bruno.
 
 ### Advanced AI Integration (The Nature Auditor)
-- **Model:** Integrated **Gemini 2.5 Flash** (Bleeding-edge LLM) for automated peer review.
+- **Model:** Integrated **Gemini 2.5 Flash** for automated peer review.
 - **Dynamic Discovery:** Implemented runtime model discovery to ensure the system always utilizes the most advanced available Google AI model.
-- **Audit Protocol:** Engineered a custom weighted prompt system to score research based on:
-    - **Methodology (40%)**
-    - **Data Transparency (30%)**
-    - **Logical Coherence (20%)**
-    - **Novelty (10%)**
-- **Robustness:** Built-in JSON sanitization and fallback logic to handle stochastic AI outputs without system failure.
+- **Audit Protocol:** Engineered a custom weighted prompt system to score research based on Methodology (40%), Data Transparency (30%), Logical Coherence (20%), and Novelty (10%).
+
+### The Truth Layer & Containerization (Complete)
+- **External Validation:** Integrated **Crossref API** for real-time DOI verification and metadata reconciliation.
+- **Hybrid Scoring Logic:** Developed a "Zero-Trust" weighting system that penalizes integrity scores if the DOI fails registry verification.
+- **Containerization:** Developed a multi-layer **Dockerfile** to ensure environment parity and ease of deployment.
+- **DevOps:** Implemented secure environment variable mapping for Docker to protect AI API keys on Windows/Linux environments.
 
 ---
 
@@ -35,5 +36,6 @@ ScholarSense is a high-performance platform designed to solve the "Trust Gap" in
 - [x] Database Schema Design & Migrations
 - [x] CRUD Operations for Research Papers
 - [x] Gemini 2.5 AI Audit Engine
-- [ ] Crossref DOI Verification (Upcoming)
-- [ ] Docker Containerization (Upcoming)
+- [x] Crossref DOI Verification 
+- [x] Docker Containerization
+- [ ] Semantic Search / Frontend Dashboard (Upcoming)
