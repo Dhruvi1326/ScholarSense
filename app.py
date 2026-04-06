@@ -85,11 +85,7 @@ with st.sidebar:
     clinical_mode = st.toggle("Clinical Translation Mode", value=False)
     st.info("Mode: " + ("Regulatory Guardrails" if clinical_mode else "Academic Rigor"))
     
-    st.divider()
-    st.markdown("### 🛠️ Quick Stats")
-    # You can add dynamic counters here later
-    st.write("University: **Parul University**")
-    st.write("Role: **PhD Scholar**")
+
 
 # --- Main Layout ---
 st.title("Research Integrity Command Center")
