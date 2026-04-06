@@ -1,8 +1,15 @@
+import os
+import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-import models, database, ai_engine, verifier
-from vector_service import initialize_vector_db, add_to_vector_store
 from pydantic import BaseModel
+
+# 1. CLOUD-READY IMPORTS (Moved to top for faster execution)
+import models
+import database
+import ai_engine
+import verifier
+from vector_service import initialize_vector_db, add_to_vector_store, client, COLLECTION_NAME, model
 
 # Initialize SQL Tables
 models.Base.metadata.create_all(bind=database.engine)
@@ -93,14 +100,11 @@ async def semantic_search(query: str, limit: int = 3):
     """
     Searches by MEANING using Vector Math.
     """
-    from vector_service import client, COLLECTION_NAME, model
-    
     try:
-        # 1. Convert question to vector
+        # 1. Convert question to vector (Global 'model' used here)
         query_vector = model.encode(query).tolist()
         
-        # 2. Search Qdrant using the 'search' method
-        # Note: If your version is very new, we use query_points
+        # 2. Search Qdrant
         try:
             results = client.search(
                 collection_name=COLLECTION_NAME,
@@ -127,3 +131,9 @@ async def semantic_search(query: str, limit: int = 3):
     except Exception as e:
         print(f"❌ Search Error Detail: {e}")
         return {"error": f"Search failed: {str(e)}"}
+
+# 2. DYNAMIC PORT HANDLING (Critical for Cloud Run)
+if __name__ == "__main__":
+    # Cloud Run provides a $PORT env variable. Default to 8080.
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
