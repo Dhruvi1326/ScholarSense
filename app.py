@@ -7,10 +7,59 @@ import os
 st.set_page_config(page_title="ScholarSense", layout="wide")
 
 # --- Glassmorphism CSS ---
+# --- CUSTOM CSS (Pastel Zen Theme) ---
 st.markdown("""
     <style>
-    .stApp { background: #0e1117; color: white; }
-    div[data-testid="stExpander"] { background: rgba(255, 255, 255, 0.05); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    /* Main Background and Text */
+    .stApp {
+        background-color: #F7F3F0; /* Soft Beige */
+        color: #4A4A4A; /* Charcoal Gray for readability */
+    }
+    
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background-color: #EDE7E3; /* Slightly deeper beige */
+        border-right: 1px solid #D8D2D0;
+    }
+
+    /* Buttons */
+    .stButton>button {
+        border-radius: 12px;
+        background-color: #F8D7DA; /* Soft Pastel Pink */
+        color: #4A4A4A;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stButton>button:hover {
+        background-color: #F1C0C4; /* Deeper Pink */
+        color: #000;
+    }
+
+    /* Cards and Expanders */
+    div[data-testid="stExpander"] {
+        background-color: #FFFFFF; /* Pure White for contrast */
+        border-radius: 15px;
+        border: 1px solid #EAEAEA;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    /* Metrics */
+    div[data-testid="stMetricValue"] {
+        color: #D63384; /* Scientific Pink/Magenta for the score */
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+        background-color: transparent;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #8E8E8E;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #D63384 !important;
+        border-bottom-color: #D63384 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
