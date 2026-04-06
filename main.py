@@ -9,7 +9,7 @@ import models
 import database
 import ai_engine
 import verifier
-from vector_service import initialize_vector_db, add_to_vector_store, client, COLLECTION_NAME, model
+from vector_service import initialize_vector_db, add_to_vector_store, client, COLLECTION_NAME
 
 # Initialize SQL Tables
 models.Base.metadata.create_all(bind=database.engine)
@@ -97,6 +97,8 @@ async def create_paper(paper: PaperCreate, db: Session = Depends(database.get_db
 
 @app.get("/search/")
 async def semantic_search(query: str, limit: int = 3):
+
+    from vector_service import model
     """
     Searches by MEANING using Vector Math.
     """
