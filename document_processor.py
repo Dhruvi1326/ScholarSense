@@ -14,12 +14,19 @@ def upload_to_gemini(file_path):
     file = genai.upload_file(path=file_path, mime_type="application/pdf")
     return file
 
-def get_text_for_indexing(file_path):
+def extract_text(file_path):
     """
-    Quickly extracts text for our Qdrant Search (Day 4 logic).
+    Extracts text for our Qdrant Search. 
+    Renamed from 'get_text_for_indexing' to match app.py calls.
     """
-    reader = PdfReader(file_path)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text() + "\n"
-    return text
+    try:
+        reader = PdfReader(file_path)
+        text = ""
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+        return text
+    except Exception as e:
+        print(f"Error extracting PDF text: {e}")
+        return ""
