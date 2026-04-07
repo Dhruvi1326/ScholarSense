@@ -46,7 +46,7 @@ async def audit_paper(
         new_paper = models.Paper(
             title=file.filename,
             abstract=text_content[:500], # Storing snippet
-            final_score=audit_result["final_score"],
+            integrity_score=audit_result["final_score"],
             verdict=audit_result["verdict"],
             trust_level=audit_result["trust_level"]
         )
