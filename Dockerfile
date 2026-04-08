@@ -1,26 +1,21 @@
-# 1. Use a slim but capable Python image
-FROM python:3.12-slim
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
-# 2. Install essential system build tools for AI/DB libraries
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# 3. Set the working directory
+# Set working directory
 WORKDIR /app
 
-# 4. Copy and install dependencies first (for faster caching)
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install system dependencies for PDF processing
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# 5. Copy the rest of ScholarSense code
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
 COPY . .
 
-# 6. Inform Docker about the port
-EXPOSE 8080
-
-# 7. Start the API using the Cloud Run dynamic PORT variable
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run the FastAPI server
+CMD ["uvicorn", "main.py:app", "--host", "0.0.0.0", "--port", "8080"]

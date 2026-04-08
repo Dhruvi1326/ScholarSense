@@ -1,23 +1,13 @@
-import google.generativeai as genai
 import os
-from dotenv import load_dotenv
 from pypdf import PdfReader
+from dotenv import load_dotenv
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-def upload_to_gemini(file_path):
-    """
-    Uploads the PDF to Gemini's temporary storage (48h free).
-    This allows the AI to 'see' the document structure.
-    """
-    file = genai.upload_file(path=file_path, mime_type="application/pdf")
-    return file
 
 def extract_text(file_path):
     """
-    Extracts text for our Qdrant Search. 
-    Renamed from 'get_text_for_indexing' to match app.py calls.
+    Extracts raw text for our Qdrant Search.
+    Gemini now handles the PDF directly, so we only use this for 'Neural Discovery'.
     """
     try:
         reader = PdfReader(file_path)
@@ -28,5 +18,8 @@ def extract_text(file_path):
                 text += page_text + "\n"
         return text
     except Exception as e:
-        print(f"Error extracting PDF text: {e}")
+        print(f"Extraction Error: {e}")
         return ""
+
+# WE REMOVED upload_to_gemini because the new 2026 SDK 
+# in ai_engine.py handles this automatically!

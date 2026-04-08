@@ -8,7 +8,7 @@ class Paper(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     abstract = Column(Text)
-    doi = Column(String, unique=True, index=True)
+    doi = Column(String, index=True)
     
     # UVP: unique research validation score
     integrity_score = Column(Float, default=0.0) 
