@@ -7,8 +7,7 @@ st.set_page_config(page_title="ScholarSense", layout="wide", page_icon="🧬")
 
 # --- CLOUD CONFIGURATION ---
 # Your Live Google Cloud Backend
-BACKEND_URL = "https://scholarsense-api-326425862435.us-central1.run.app"
-
+BACKEND_URL = "https://scholarsense-api-326425862435.us-central1.run.app/"
 # --- CUSTOM CSS (Enhanced Pastel Zen Theme) ---
 st.markdown("""
     <style>

@@ -14,4 +14,7 @@ class Paper(Base):
     integrity_score = Column(Float, default=0.0) 
     citation_apa = Column(Text)
 
+    # --- NEW FIELDS TO ADD ---
+    verdict = Column(Text)           # To store the forensic summary
+    trust_level = Column(String)     # To store "High", "Medium", or "Low"
  
