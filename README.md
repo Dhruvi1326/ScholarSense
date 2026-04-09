@@ -1,67 +1,68 @@
-# ScholarSense 🧬 
-**The AI-Powered Forensic Auditor for Research Integrity**
+# ScholarSense 🧬  
+**Autonomous Forensic Auditor for Research Integrity & Clinical Translation** *Engineered by a PhD Researcher to bridge the gap between Academic Rigor and Production-Grade AI.*
 
-ScholarSense is a high-performance, cloud-native platform designed to solve the "Trust Gap" in academic publishing. It doesn't just search—it audits. By combining **Vector Discovery** with **Multimodal AI Forensics**, ScholarSense cross-verifies abstract claims against deep-text data to ensure scientific rigor.
+ScholarSense is a high-performance, cloud-native platform designed to solve the "Trust Gap" in academic publishing. It moves beyond simple search, acting as an automated auditor that cross-verifies abstract claims against deep-text data and modern regulatory standards (FDA/EMA).
 
----
-
-## 🚀 Status: 🔵 Phase 4 & 5 Complete (Cloud-Native Infrastructure)
-**ScholarSense has successfully migrated from local environments to a scalable, production-grade Google Cloud Architecture.**
-
-### 🔬 Advanced AI Forensics (The Scientific Auditor)
-* **Engine:** Integrated **Gemini 2.0 Flash** with native **Multimodal PDF Processing** for full-document vision.
-* **Clinical Translation Toggle:** A domain-specific guardrail auditing research against **FDA/EMA** feasibility and skin-safety standards (specialized for Pharmaceutical Sciences & Microneedle technology).
-* **Automated Discrepancy Detection:** Cross-references Abstract claims with Results tables to flag "Data Overstatements."
-
-### 🧠 Neural Discovery & Memory
-* **Semantic Search:** **Qdrant Vector Database** (Cloud/Managed) for "Conceptual Discovery"—finding papers by meaning, not just keywords.
-* **Embeddings:** High-dimensional mapping using `all-MiniLM-L6-v2` for 768-dimension scientific fingerprints.
-* **Truth Layer:** Real-time metadata reconciliation via persistent storage and automated SQL indexing.
-
-### 🎨 Modern UX/UI Dashboard
-* **Interface:** High-performance **Streamlit** dashboard with **Glassmorphism** design elements.
-* **Real-time Metrics:** Animated Integrity Gauges and Forensic Risk labels (Gold Standard, Credible, High Risk).
-* **Product Architecture:** Full-stack integration of FastAPI (Backend Brain) and Streamlit (Frontend Command Center).
+## 🚀 [LIVE DEMO: Access ScholarSense Here](https://scholarsense.streamlit.app)
+*(Note: Use the Live Demo to experience real-time forensic auditing and neural discovery.)*
 
 ---
 
-## 🧪 Case Study: The "Prausnitz" Stress Test
-To verify the engine's ability to distinguish between academic merit and clinical reality, we audited the foundational review: **'Microneedles for drug and vaccine delivery'** (*Kim, Park, & Prausnitz, 2012*).
+## 🏗️ Technical Architecture & Cloud Infrastructure
+ScholarSense is architected as a decoupled, scalable microservices ecosystem hosted on **Google Cloud Platform (GCP)**.
+
+* **Brain (Backend API):** FastAPI (Python 3.12+) deployed via **Google Cloud Run**.
+* **Face (Frontend):** Streamlit Cloud, delivering a "Glassmorphism" Command Center for researchers.
+* **Memory (Persistence):** * **Relational:** Google Cloud SQL (PostgreSQL) for transactional research history.
+    * **Vector:** Qdrant Cloud for high-dimensional semantic fingerprints ($d=768$).
+* **AI Engine:** Gemini 2.0 Flash via Multimodal File API for full-document forensic vision.
+* **DevOps:** Automated CI/CD pipeline via **Google Cloud Build**, implementing a "Container-First" strategy.
+
+---
+
+## 🔬 Senior Engineering Highlights
+* **Scale-to-Zero Architecture:** Optimized Cloud Run configurations to ensure 99% cost efficiency while maintaining high-speed file streaming via `python-multipart`.
+* **Hybrid Persistence Layer:** Engineered a dynamic environment-aware database switch (SQLite for local development / PostgreSQL for production).
+* **Domain-Specific Guardrails:** Developed a "Clinical Translation Toggle" that audits research feasibility against 2026 FDA/EMA sterilization and GMP standards—critical for Pharmaceutical & Microneedle technology.
+* **Zero-Trust Security:** Fully integrated **GCP Secret Manager** to eliminate hardcoded credentials, ensuring enterprise-grade security for API keys and database strings.
+
+---
+
+## 🧪 Benchmark Case Study: The "Prausnitz" Stress Test
+We audited the foundational review: **'Microneedles for drug and vaccine delivery'** (*Kim, Park, & Prausnitz, 2012*).
 
 | Audit Mode | Integrity Score | Forensic Verdict | Key Clinical Insight |
 | :--- | :--- | :--- | :--- |
 | **Academic Rigor** | **95/100** | **Excellent** | Verified 350+ citations and robust historical methodology. |
-| **Clinical Translation** | **80/100** | **Comprehensive** | Flagged 2012 regulatory gaps and GMP manufacturing hurdles for 2026 standards. |
-
-**Observation:** ScholarSense identified that while the paper is a "Gold Standard," the manufacturing scalability and modern FDA sterilization protocols required for human translation in 2026 were (expectedly) less emphasized in this 2012 text.
+| **Clinical Translation** | **80/100** | **Comprehensive** | Flagged 2012 regulatory gaps vs. 2026 GMP manufacturing standards. |
 
 ---
 
-## 📈 Tech Stack & Infrastructure
-* **Cloud Platform:** Google Cloud Platform (GCP)
-* **Orchestration:** **Google Cloud Run** (Serverless Auto-scaling)
-* **CI/CD:** **Google Cloud Build** (Automated Containerization)
-* **Backend:** FastAPI (Python 3.12+) with `python-multipart` high-speed file streaming.
-* **Storage:** Hybrid Persistence (SQLite for Metadata + Qdrant for Vectors).
-* **AI Engine:** Gemini 2.0 Flash (Multimodal Vision + File API).
+## 🛠️ Installation & Local Development
+
+1. Clone the Repository:
+   ```bash
+   git clone [https://github.com/your-username/ScholarSense.git](https://github.com/your-username/ScholarSense.git)
+   cd ScholarSense
+2. Set Up Environment Variables:
+   Create a .env file in the root directory and add:
+   GEMINI_API_KEY=your_key_here
+   DATABASE_URL=your_sql_url_here
+   QDRANT_URL=your_qdrant_url_here
+3. Install Dependencies:
+   pip install -r requirements.txt
+5. Launch the Engine:
+   uvicorn main:app --reload
+
+## 👨‍🔬 About the Developer
+Currently a **PhD Scholar** and *, I have transitioned into **Full-Stack Cloud Engineering** to build high-performance tools for academic and professional use. ScholarSense represents the culmination of this journey—applying modern software architecture and AI to solve real-world challenges in research integrity.
 
 ---
+🗺️ Roadmap
+[x] Phase 4: Cloud Migration (FastAPI to Google Cloud Run).
 
-## 🗺️ Roadmap
-* [x] **Phase 4:** Cloud Migration (FastAPI to Google Cloud Run).
-* [x] **Phase 5:** CI/CD Integration (Google Cloud Build).
-* [ ] **Phase 8:** Frontend Cloud Hosting (Streamlit on Google Cloud).
-* [ ] **Phase 9: Secure Scholar Access** — Implementing **OAuth2 (Google Identity)** for private research vaults.
+[x] Phase 5: CI/CD Integration (Google Cloud Build).
 
----
+[x] Phase 6: Persistent Cloud Storage (Google Cloud SQL).
 
-## ✅ Deployment Notes
-To deploy this architecture to Google Cloud:
-```bash
-# Bake the Container
-gcloud builds submit --tag us-central1-docker.pkg.dev/$PROJECT_ID/repo/api:latest
-
-# Deploy with AI-Optimized Resources
-gcloud run deploy scholarsense-api \
-  --image us-central1-docker.pkg.dev/$PROJECT_ID/repo/api:latest \
-  --memory 2Gi --cpu 1 --timeout 300
+[ ] Phase 9: Secure Scholar Access — Implementing OAuth2 (Google Identity) for private research vaults.
