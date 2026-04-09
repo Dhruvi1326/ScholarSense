@@ -1,5 +1,7 @@
 # Secrets
 .env
+model_cache/
+qdrant_storage/
 
 # Database
 scholarsense.db
@@ -11,3 +13,5 @@ venv/
 
 # Docker
 *.tar
+*.db
+temp_*
