@@ -15,3 +15,5 @@ venv/
 *.tar
 *.db
 temp_*
+
+secrets.txt
