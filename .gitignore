@@ -1,19 +1,5 @@
-# Secrets
-.env
-model_cache/
+scholarsense_local.db
+temp.pdf
 qdrant_storage/
-
-# Database
-scholarsense.db
-
-# Python
+.env
 __pycache__/
-venv/
-.pytest_cache/
-
-# Docker
-*.tar
-*.db
-temp_*
-
-secrets.txt
