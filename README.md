@@ -42,7 +42,7 @@ We audited the foundational review: **'Microneedles for drug and vaccine deliver
 
 1. Clone the Repository:
    ```bash
-   git clone [https://github.com/your-username/ScholarSense.git](https://github.com/your-username/ScholarSense.git)
+   git clone [https://github.com/your-username/ScholarSense.git](https://github.com/dhruvi1326/ScholarSense.git)
    cd ScholarSense
 2. Set Up Environment Variables:
    Create a .env file in the root directory and add:
