@@ -12,21 +12,23 @@ load_dotenv()
 QDRANT_URL = "https://144a8e84-2a9f-4e27-b417-5953265687a5.us-east4-0.gcp.cloud.qdrant.io"
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = "scholar_papers_v1"
-MODEL_PATH = "./model_cache" # Must match Dockerfile
+MODEL_PATH = "./model_cache" # Matches Dockerfile exactly
 
 # --- 1. PRO-LEVEL MODEL LOADING ---
-# We point to the local folder we "baked" in the Dockerfile
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = MODEL_PATH
 
-# Global placeholders to prevent boot-time hang
 _model = None
 _client = None
 
 def get_model():
     global _model
     if _model is None:
-        # Load from local cache folder only
-        _model = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=MODEL_PATH)
+        # Optimization: Force local loading to prevent startup hangs
+        _model = SentenceTransformer(
+            'all-MiniLM-L6-v2', 
+            cache_folder=MODEL_PATH,
+            local_files_only=True  # THIS IS THE KEY SAFETY ADDITION
+        )
     return _model
 
 def get_client():
@@ -43,7 +45,6 @@ def get_client():
 
 # --- 2. LAZY INITIALIZATION ---
 def initialize_vector_db():
-    """Checks for collection only when called, not at import."""
     try:
         client = get_client()
         collections = client.get_collections().collections
@@ -57,7 +58,6 @@ def initialize_vector_db():
         print(f"⚠️ Cloud Sync Warning: {e}")
 
 def add_to_vector_store(paper_id, title, abstract, integrity_score):
-    """Converts the paper into a vector and saves it to Qdrant Cloud."""
     client = get_client()
     model = get_model()
     
