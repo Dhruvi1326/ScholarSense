@@ -22,4 +22,5 @@ RUN python3 -c "from sentence_transformers import SentenceTransformer; model = S
 COPY . .
 
 # Run the FastAPI server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Replace your current CMD with this exact line:
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
