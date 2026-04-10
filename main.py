@@ -4,38 +4,39 @@ import uuid
 import time
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-import models
-import database
-import ai_engine
-import document_processor 
-import vector_service 
 
+# Initialize FastAPI immediately
 app = FastAPI(title="ScholarSense API")
 
-# --- STEP 2: LAZY INITIALIZATION (FIXES PORT 8080 TIMEOUT) ---
-# We move table creation inside a startup event so the server binds to the port FIRST.
-@app.on_event("startup")
-def configure_db():
-    try:
-        models.Base.metadata.create_all(bind=database.engine)
-        print("✅ Database Tables Verified/Created")
-    except Exception as e:
-        print(f"⚠️ Database connection delayed: {e}")
-
+# --- STEP A: ZERO-DEPENDENCY HEALTH CHECK ---
+# This ensures Cloud Run sees the app as "ALIVE" before complex imports start
 @app.get("/")
 def home():
-    return {"status": "Robust Logic Active", "version": "2.0.Secure"}
+    return {"status": "ScholarSense API is Live", "version": "3.0.Production"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+# --- STEP B: LAZY IMPORTS ---
+# We move these inside functions to prevent "Import Phase" crashes
+def get_audit_logic():
+    import models, database, ai_engine, document_processor, vector_service
+    return models, database, ai_engine, document_processor, vector_service
 
 @app.get("/papers")
-def get_papers(db: Session = Depends(database.get_db)):
+def get_papers(db: Session = None):
+    models, database, _, _, _ = get_audit_logic()
+    db = next(database.get_db()) if db is None else db
     papers = db.query(models.Paper).order_by(models.Paper.id.desc()).all()
     return papers
 
 @app.get("/search")
 def search_papers(q: str = Query(...)):
+    _, _, _, _, vector_service = get_audit_logic()
     try:
-        query_vector = vector_service.model.encode(q).tolist()
-        results = vector_service.client.search(
+        query_vector = vector_service.get_model().encode(q).tolist()
+        results = vector_service.get_client().search(
             collection_name=vector_service.COLLECTION_NAME,
             query_vector=query_vector,
             limit=5
@@ -49,23 +50,25 @@ def search_papers(q: str = Query(...)):
             } for r in results
         ]
     except Exception as e:
-        print(f"Search Error: {e}")
         return {"error": str(e)}
 
 @app.post("/audit/")
 async def audit_paper(
     file: UploadFile = File(...),
-    clinical_mode: bool = Form(False),
-    db: Session = Depends(database.get_db)
+    clinical_mode: bool = Form(False)
 ):
-    temp_path = f"temp_{uuid.uuid4()}_{file.filename}" # Safer unique filename
+    # Load dependencies only when the button is clicked
+    models, database, ai_engine, document_processor, vector_service = get_audit_logic()
+    db = next(database.get_db())
+    
+    temp_path = f"temp_{uuid.uuid4()}_{file.filename}"
     try:
         with open(temp_path, "wb") as buffer:
             buffer.write(await file.read())
 
         text_content = document_processor.extract_text(temp_path)
         
-        # --- STEP 3: AI RETRY LOGIC (FIXES 503 ERRORS) ---
+        # AI Forensic Audit with Retry
         audit_result = None
         for attempt in range(3):
             try:
@@ -73,13 +76,12 @@ async def audit_paper(
                 if audit_result: break
             except Exception as ai_e:
                 if "503" in str(ai_e) or "demand" in str(ai_e).lower():
-                    print(f"🔄 AI Engine busy, retrying in {2**attempt}s...")
                     time.sleep(2**attempt)
                     continue
                 raise ai_e
 
         if not audit_result:
-            raise Exception("AI Engine failed to provide a result after multiple attempts.")
+            raise Exception("AI Engine busy. Please try again in a moment.")
 
         # Save to SQL
         new_paper = models.Paper(
@@ -105,7 +107,7 @@ async def audit_paper(
                 integrity_score=audit_result.get("final_score", 0)
             )
         except Exception as vec_e:
-            print(f"⚠️ Vector Store Sync Warning: {vec_e}")
+            print(f"Vector Sync Warning: {vec_e}")
 
         return audit_result
 
@@ -118,4 +120,4 @@ async def audit_paper(
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)
