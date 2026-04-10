@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # --- STEP 1: BAKE MODELS (ROCK-SOLID SYNTAX) ---
 # This ensures the model is pre-downloaded during the build
-RUN python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+RUN python3 -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('all-MiniLM-L6-v2'); model.save('./model_weights')"
 
 # Copy project files
 COPY . .

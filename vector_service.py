@@ -1,32 +1,51 @@
-from sentence_transformers import SentenceTransformer
 import os
 import uuid
+import time
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 
-
 load_dotenv()
 
-# Let's use a more robust connection setup
+# Configuration
 QDRANT_URL = "https://144a8e84-2a9f-4e27-b417-5953265687a5.us-east4-0.gcp.cloud.qdrant.io"
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-
-# Create the client with an increased timeout and explicit port
-client = QdrantClient(
-    url=QDRANT_URL,
-    api_key=QDRANT_API_KEY,
-    port=443,     # Standard HTTPS port to bypass firewalls
-    https=True,   # Secure connection
-    timeout=60    # Prevents the 'Timed out' error
-)
-
-os.environ["SENTENCE_TRANSFORMERS_HOME"] = "./model_cache"
-model = SentenceTransformer('all-MiniLM-L6-v2') # Produces 384 dims
 COLLECTION_NAME = "scholar_papers_v1"
+MODEL_PATH = "./model_cache" # Must match Dockerfile
 
+# --- 1. PRO-LEVEL MODEL LOADING ---
+# We point to the local folder we "baked" in the Dockerfile
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = MODEL_PATH
+
+# Global placeholders to prevent boot-time hang
+_model = None
+_client = None
+
+def get_model():
+    global _model
+    if _model is None:
+        # Load from local cache folder only
+        _model = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=MODEL_PATH)
+    return _model
+
+def get_client():
+    global _client
+    if _client is None:
+        _client = QdrantClient(
+            url=QDRANT_URL,
+            api_key=QDRANT_API_KEY,
+            port=443,
+            https=True,
+            timeout=60
+        )
+    return _client
+
+# --- 2. LAZY INITIALIZATION ---
 def initialize_vector_db():
+    """Checks for collection only when called, not at import."""
     try:
+        client = get_client()
         collections = client.get_collections().collections
         if not any(c.name == COLLECTION_NAME for c in collections):
             client.create_collection(
@@ -37,27 +56,19 @@ def initialize_vector_db():
     except Exception as e:
         print(f"⚠️ Cloud Sync Warning: {e}")
 
-initialize_vector_db()
-
 def add_to_vector_store(paper_id, title, abstract, integrity_score):
-    """
-    Converts the paper into a vector and saves it to Qdrant Cloud.
-    """
-    # Use global COLLECTION_NAME
+    """Converts the paper into a vector and saves it to Qdrant Cloud."""
+    client = get_client()
+    model = get_model()
     
-    # 1. Prepare the data
     text_to_embed = f"Title: {title}. Abstract: {abstract}"
     vector = model.encode(text_to_embed).tolist()
     
-    # 2. Ensure paper_id is a valid Qdrant ID (UUID or Int)
-    # We use uuid to create a unique mapping for string IDs
     if isinstance(paper_id, int):
         point_id = paper_id
     else:
-        # Converts string ID to a valid UUID-based integer for Qdrant
         point_id = int(uuid.uuid5(uuid.NAMESPACE_DNS, str(paper_id)).int >> 96)
 
-    # 3. Upsert to Cloud
     client.upsert(
         collection_name=COLLECTION_NAME,
         points=[
@@ -67,13 +78,10 @@ def add_to_vector_store(paper_id, title, abstract, integrity_score):
                 payload={
                     "original_id": str(paper_id),
                     "title": title, 
-                    "abstract": abstract[:500], # Snippet for the UI
+                    "abstract": abstract[:500],
                     "integrity_score": float(integrity_score)
                 }
             )
         ]
     )
-    print(f"✅ Paper '{title}' (ID: {paper_id}) indexed in Qdrant Cloud.")
-
-# Call this once at the end of the script to ensure the cloud is ready
-initialize_vector_db()
+    print(f"✅ Paper '{title}' indexed in Qdrant Cloud.")
