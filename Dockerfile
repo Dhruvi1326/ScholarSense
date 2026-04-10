@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# --- STEP 1: BAKE MODELS INTO IMAGE ---
+# Pre-download the embedding model so it's ready at startup
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+# --------------------------------------
+
 # Copy project files
 COPY . .
 
