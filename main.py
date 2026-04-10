@@ -1,46 +1,45 @@
 import os
 import uvicorn
 import uuid
+import time
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 import models
 import database
 import ai_engine
 import document_processor 
-import vector_service # Ensure this is imported for the search endpoint
-
-# Initialize SQL Tables
-models.Base.metadata.create_all(bind=database.engine)
+import vector_service 
 
 app = FastAPI(title="ScholarSense API")
+
+# --- STEP 2: LAZY INITIALIZATION (FIXES PORT 8080 TIMEOUT) ---
+# We move table creation inside a startup event so the server binds to the port FIRST.
+@app.on_event("startup")
+def configure_db():
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+        print("✅ Database Tables Verified/Created")
+    except Exception as e:
+        print(f"⚠️ Database connection delayed: {e}")
 
 @app.get("/")
 def home():
     return {"status": "Robust Logic Active", "version": "2.0.Secure"}
 
-# --- NEW: HISTORY ENDPOINT (Clears the Research Library warning) ---
 @app.get("/papers")
 def get_papers(db: Session = Depends(database.get_db)):
-    """Fetches all previously audited papers from the local SQL database."""
     papers = db.query(models.Paper).order_by(models.Paper.id.desc()).all()
     return papers
 
-# --- NEW: NEURAL SEARCH ENDPOINT (Clears the Neural Discovery warning) ---
 @app.get("/search")
 def search_papers(q: str = Query(...)):
-    """Searches your Qdrant Cloud memory using AI vector embeddings."""
     try:
-        # 1. Convert user query to vector
         query_vector = vector_service.model.encode(q).tolist()
-        
-        # 2. Search Qdrant Cloud
         results = vector_service.client.search(
             collection_name=vector_service.COLLECTION_NAME,
             query_vector=query_vector,
             limit=5
         )
-        
-        # 3. Format results for the Streamlit UI
         return [
             {
                 "title": r.payload.get("title", "Unknown"),
@@ -59,20 +58,30 @@ async def audit_paper(
     clinical_mode: bool = Form(False),
     db: Session = Depends(database.get_db)
 ):
-    temp_path = f"temp_{file.filename}"
+    temp_path = f"temp_{uuid.uuid4()}_{file.filename}" # Safer unique filename
     try:
-        # Save temp file
         with open(temp_path, "wb") as buffer:
             buffer.write(await file.read())
 
-        # 1. Extract Text
         text_content = document_processor.extract_text(temp_path)
         
-        # 2. AI Forensic Audit (Gemini 2.5 Flash - Stable 2026)
-        audit_result = ai_engine.evaluate_paper_integrity(temp_path, clinical_mode)
-        print(f"DEBUG AI RESPONSE: {audit_result}")
+        # --- STEP 3: AI RETRY LOGIC (FIXES 503 ERRORS) ---
+        audit_result = None
+        for attempt in range(3):
+            try:
+                audit_result = ai_engine.evaluate_paper_integrity(temp_path, clinical_mode)
+                if audit_result: break
+            except Exception as ai_e:
+                if "503" in str(ai_e) or "demand" in str(ai_e).lower():
+                    print(f"🔄 AI Engine busy, retrying in {2**attempt}s...")
+                    time.sleep(2**attempt)
+                    continue
+                raise ai_e
 
-        # 3. Save to SQL Database
+        if not audit_result:
+            raise Exception("AI Engine failed to provide a result after multiple attempts.")
+
+        # Save to SQL
         new_paper = models.Paper(
             title=file.filename,
             abstract=text_content[:1000], 
@@ -87,7 +96,7 @@ async def audit_paper(
         db.commit()
         db.refresh(new_paper)
 
-        # 4. Save to Vector Memory (Qdrant Cloud)
+        # Save to Vector Store
         try:
             vector_service.add_to_vector_store(
                 paper_id=new_paper.id, 
@@ -98,17 +107,14 @@ async def audit_paper(
         except Exception as vec_e:
             print(f"⚠️ Vector Store Sync Warning: {vec_e}")
 
-        # Cleanup
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
         return audit_result
 
     except Exception as e:
+        print(f"CRITICAL ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
-        print(f"CRITICAL ERROR: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Audit failed: {str(e)}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
