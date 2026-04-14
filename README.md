@@ -3,11 +3,6 @@
 
 ScholarSense is a high-performance, cloud-native platform designed to solve the "Trust Gap" in academic publishing. It moves beyond simple search, acting as an automated auditor that cross-verifies abstract claims against deep-text data and modern regulatory standards (FDA/EMA).
 
-## 🚀 [LIVE DEMO: Access ScholarSense Here](https://scholarsense.streamlit.app)
-*(Note: Use the Live Demo to experience real-time forensic auditing and neural discovery.)*
-
----
-
 ## 🏗️ Technical Architecture & Cloud Infrastructure
 ScholarSense is architected as a decoupled, scalable microservices ecosystem hosted on **Google Cloud Platform (GCP)**.
 
