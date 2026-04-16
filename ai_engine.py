@@ -1,8 +1,7 @@
 import os
 import json
 import time # Added for retry delay
-from google import genai 
-from google.genai import types
+import google.generativeai as genai
 from google.api_core import exceptions # For catching server busy errors
 from dotenv import load_dotenv
 
